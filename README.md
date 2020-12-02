@@ -1,15 +1,22 @@
 # vpype-embroidery
 Vpype plugin for embroidery
+See: https://github.com/abey79/vpype
+
 
 Embroidery vpype plugin. Reads and Writes embroidery files for the vpype pipeline.
 
 * `read-emb` load an embroidery into the pipeline.
 * `write-emb` write geometries to disk.
+* `efill` (unfinished) fill closed shapes in the document with a Eulerian fill.
 
+
+# Installing
+`$ pip install git+https://github.com/EmbroidePy/vpype-embroidery.git#egg=vpype-embroidery`
 
 # Supported Formats.
 
 This uses `pyembroidery` for the backend so the formats supported are as follows:
+https://github.com/EmbroidePy/pyembroidery
 
 ## Embroidery Formats
 ### Write
