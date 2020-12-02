@@ -16,7 +16,7 @@ setup(
     author="Tatarize",
     url="https://github.com/abey79/vpype-explorations/",
     license=license,
-    packages=["vpype_pyembroidery"],
+    packages=["vpype_embroidery"],
     install_requires=[
         "click",
         "vpype",
