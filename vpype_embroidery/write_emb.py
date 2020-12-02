@@ -14,11 +14,10 @@ from pyembroidery import EmbPattern, STITCH, COLOR_BREAK
 @vp.global_processor
 def write_emb(document: vp.Document, filename: str):
     pattern = EmbPattern()
-    for layer in document:
+    for layer in document.layers.values():
         for p in layer:
             pattern.add_stitch_absolute(STITCH, p.real, p.imag)
         pattern.add_block(COLOR_BREAK)
     pattern.write(filename)
     return document
-
 
