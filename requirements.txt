@@ -1,0 +1,6 @@
+Pillow
+click
+vpype
+shapely
+numpy
+pyembroidery
