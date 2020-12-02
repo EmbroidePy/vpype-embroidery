@@ -28,10 +28,9 @@ def efill(document: vp.Document, tolerance: float, distance: float):
     efill = EulerianFill(distance)
     for layer in document.layers.values():
         for p in layer:
-            # print(p)
-            # print(vp.as_vector(p))
             if np.abs(p[0] - p[-1]) <= tolerance:
                 efill += vp.as_vector(p)
+                efill += ((p[0].real, p[0].imag), (p[-1].real, p[0].imag))
     fill = efill.get_fill()
     lines = list()
     for i in range(1, len(fill)):
