@@ -15,15 +15,16 @@ _EMB_SCALE_FACTOR = 2.645833333333333
 @vp.global_processor
 def read_emb(document: vp.Document, filename: str):
     pattern = EmbPattern(filename)
-
-    for stitches, color in pattern.get_as_colorblocks():
-        lc = [(s[0] * _EMB_SCALE_FACTOR, s[1] * _EMB_SCALE_FACTOR) for s in stitches]
+    for stitches, color in pattern.get_as_stitchblock():
+        if len(stitches) == 0:
+            continue
+        lc = vp.LineCollection([(stitches[i-1][0] + stitches[i-1][1] * 1j,
+                                 stitches[i][0] + stitches[i][1] * 1j)
+                                for i in range(1,len(stitches))])
+        lc.scale(1.0/_EMB_SCALE_FACTOR)
         c = color.color
         # Color here is simply ignored.
-        document.add(vp.LineCollection(lc))
+        document.add(lc)
     return document
-
-
-
 
 read_emb.help_group = "Plugins"

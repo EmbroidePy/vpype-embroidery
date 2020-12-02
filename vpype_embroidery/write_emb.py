@@ -26,7 +26,8 @@ def write_emb(document: vp.Document, filename: str, version: str):
     for layer in document.layers.values():
         for p in layer:
             m = p * _EMB_SCALE_FACTOR
-            pattern.add_stitch_absolute(STITCH, m.real, m.imag)
+            for v in m:
+                pattern.add_stitch_absolute(STITCH, int(v.real), int(v.imag))
         pattern.add_block(COLOR_BREAK)
     if version is not None:
         pattern.write(filename, version=version)
@@ -34,3 +35,4 @@ def write_emb(document: vp.Document, filename: str, version: str):
         pattern.write(filename)
     return document
 
+write_emb.help_group = "Plugins"
