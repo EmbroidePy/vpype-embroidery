@@ -1,6 +1,7 @@
 import click
 import vpype as vp
 from pyembroidery import EmbPattern, STITCH, COLOR_BREAK
+_EMB_SCALE_FACTOR = 2.645833333333333
 
 @click.command()
 @click.option(
@@ -9,15 +10,27 @@ from pyembroidery import EmbPattern, STITCH, COLOR_BREAK
     nargs=1,
     default=None,
     type=str,
-    help="read_emb",
+    help="write_emb",
+)
+@click.option(
+    "-v",
+    "--version",
+    nargs=1,
+    default=None,
+    type=str,
+    help="version of embroidery file to write",
 )
 @vp.global_processor
-def write_emb(document: vp.Document, filename: str):
+def write_emb(document: vp.Document, filename: str, version: str):
     pattern = EmbPattern()
     for layer in document.layers.values():
         for p in layer:
-            pattern.add_stitch_absolute(STITCH, p.real, p.imag)
+            m = p * _EMB_SCALE_FACTOR
+            pattern.add_stitch_absolute(STITCH, m.real, m.imag)
         pattern.add_block(COLOR_BREAK)
-    pattern.write(filename)
+    if version is not None:
+        pattern.write(filename, version=version)
+    else:
+        pattern.write(filename)
     return document
 
