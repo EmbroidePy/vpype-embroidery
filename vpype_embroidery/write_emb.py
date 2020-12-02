@@ -4,14 +4,7 @@ from pyembroidery import EmbPattern, STITCH, COLOR_BREAK
 _EMB_SCALE_FACTOR = 2.645833333333333
 
 @click.command()
-@click.option(
-    "-w",
-    "--filename",
-    nargs=1,
-    default=None,
-    type=str,
-    help="write_emb",
-)
+@click.argument('filename', type=click.Path(exists=False))
 @click.option(
     "-v",
     "--version",

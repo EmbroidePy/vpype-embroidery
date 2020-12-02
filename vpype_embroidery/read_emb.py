@@ -4,14 +4,7 @@ from pyembroidery import EmbPattern
 _EMB_SCALE_FACTOR = 2.645833333333333
 
 @click.command()
-@click.option(
-    "-r",
-    "--filename",
-    nargs=1,
-    default=None,
-    type=str,
-    help="read_emb",
-)
+@click.argument('filename', type=click.Path(exists=True))
 @vp.global_processor
 def read_emb(document: vp.Document, filename: str):
     pattern = EmbPattern(filename)
