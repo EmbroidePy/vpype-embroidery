@@ -28,7 +28,6 @@ def efill(document: vp.Document, tolerance: float, distance: float):
     efill = EulerianFill(distance)
     for layer in document.layers.values():
         for p in layer:
-            print(vp.as_vector(p))
             if np.abs(p[0] - p[-1]) <= tolerance:
                 efill += vp.as_vector(p)
     fill = efill.get_fill()
@@ -632,7 +631,7 @@ class EulerianFill:
         min_y = float('inf')
         max_y = -float('inf')
         for outline in self.outlines:
-            outline_graph.add_shape(outline, True)
+            outline_graph.add_shape(outline, False)
             o_min_y = min([p[1] for p in outline])
             o_max_y = max([p[1] for p in outline])
             min_y = min(min_y, o_min_y)
