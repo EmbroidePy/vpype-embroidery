@@ -28,23 +28,23 @@ def efill(document: vp.Document, tolerance: float, distance: float):
     efill = EulerianFill(distance)
     for layer in document.layers.values():
         for p in layer:
+            print(vp.as_vector(p))
             if np.abs(p[0] - p[-1]) <= tolerance:
                 efill += vp.as_vector(p)
-                efill += ((p[0].real, p[0].imag), (p[-1].real, p[0].imag))
     fill = efill.get_fill()
-    lines = list()
-    for i in range(1, len(fill)):
-        if fill[i] is None:
-            lc = vp.LineCollection(lines)
-            document.add(lc)
-            lines.clear()
-        elif fill[i-1] is None:
-            continue
+
+    lc = vp.LineCollection()
+    cur_line = []
+    for pt in fill:
+        if pt is None:
+            if cur_line:
+                lc.append(cur_line)
+            cur_line = []
         else:
-            lines.append((complex(fill[i - 1]), complex(fill[i])))
-    if len(lines) != 0:
-        lc = vp.LineCollection(lines)
-        document.add(lc)
+            cur_line.append(complex(pt[0], pt[1]))
+    if cur_line:
+        lc.append(cur_line)
+    document.add(lc)
     return document
 
 
@@ -106,7 +106,7 @@ class Segment:
 
     def intersect(self, segment):
         return Segment.line_intersect(self.a[0], self.a[1], self.b[0], self.b[1],
-                                      segment.a[0], segment.a[1], segment.b[0], segment.b[1],)
+                                      segment.a[0], segment.a[1], segment.b[0], segment.b[1])
 
     def sort_bisectors(self):
         def distance(a):
@@ -177,7 +177,6 @@ class Graph:
             crawler.next_intercept(distance)
             crawler.sort_actives()
             y = crawler.current
-
             for i in range(1, len(crawler.actives), 2):
                 left_segment = crawler.actives[i-1]
                 right_segment = crawler.actives[i]
