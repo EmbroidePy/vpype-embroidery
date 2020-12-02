@@ -14,35 +14,42 @@ from svgelements import Point
     help="Max distance between start and end point to consider a path closed "
     "(default: 0.01mm)",
 )
-# @click.option(
-#     "-a",
-#     "--angle",
-#     type=vp.AngleType(),
-#     default="0",
-#     help="Angle of fill lines to be applied to closed paths."
-#     "(default: 0.01mm)",
-# )
 @click.option(
     "-d",
     "--distance",
     type=vp.LengthType(),
-    default="0.2mm",
-    help="Distance between fill lines."
-    "(default: 0.2mm)",
+    default="0.4mm",
+    help="Distance Between lines in the fill"
+    "(default: 0.4mm)",
 )
-@vp.layer_processor
-def fill(
-    lines: vp.LineCollection, tolerance: float, distance: float,
-) -> vp.LineCollection:
+@vp.global_processor
+def efill(document: vp.Document, tolerance: float, distance: float):
 
     efill = EulerianFill(distance)
-    for line in lines:
-        if np.abs(line[0] - line[-1]) <= tolerance:
-            efill += lines
-    return efill.get_fill()
+    for layer in document.layers.values():
+        for p in layer:
+            # print(p)
+            # print(vp.as_vector(p))
+            if np.abs(p[0] - p[-1]) <= tolerance:
+                efill += vp.as_vector(p)
+    fill = efill.get_fill()
+    lines = list()
+    for i in range(1, len(fill)):
+        if fill[i] is None:
+            lc = vp.LineCollection(lines)
+            document.add(lc)
+            lines.clear()
+        elif fill[i-1] is None:
+            continue
+        else:
+            lines.append((complex(fill[i - 1]), complex(fill[i])))
+    if len(lines) != 0:
+        lc = vp.LineCollection(lines)
+        document.add(lc)
+    return document
 
 
-fill.help_group = "Plugins"
+efill.help_group = "Embroidery"
 
 
 class GraphNode(Point):
@@ -635,7 +642,7 @@ class EulerianFill:
         graph = Graph()
         Graph.monotone_fill(graph, [outline_graph], min_y, max_y, self.distance)
         graph.double_odd_edge()
-        walk = vp.LineCollection()
+        walk = list()
         graph.walk(walk)
         return walk
 
