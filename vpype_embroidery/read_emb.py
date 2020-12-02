@@ -11,11 +11,18 @@ from pyembroidery import EmbPattern
     type=str,
     help="read_emb",
 )
-@vp.generator
-def read_emb(filename: str):
+@vp.global_processor
+def read_emb(document: vp.Document, filename: str):
     pattern = EmbPattern(filename)
-    lc = [(s[0], s[1]) for s in pattern.stitches]
-    return vp.LineCollection(lc)
+
+    for stitches, color in pattern.get_as_colorblocks():
+        lc = [(s[0], s[1]) for s in stitches]
+        c = color.color
+        # Color here is simply ignored.
+        document.add(vp.LineCollection(lc))
+    return document
+
+
 
 
 read_emb.help_group = "Plugins"
