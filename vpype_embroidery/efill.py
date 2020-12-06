@@ -5,24 +5,24 @@ import vpype as vp
 from svgelements import Point
 
 
-@click.command()
-@click.option(
-    "-t",
-    "--tolerance",
-    type=vp.LengthType(),
-    default="0.01mm",
-    help="Max distance between start and end point to consider a path closed "
-    "(default: 0.01mm)",
-)
-@click.option(
-    "-d",
-    "--distance",
-    type=vp.LengthType(),
-    default="0.4mm",
-    help="Distance Between lines in the fill"
-    "(default: 0.4mm)",
-)
-@vp.global_processor
+# @click.command()
+# @click.option(
+#     "-t",
+#     "--tolerance",
+#     type=vp.LengthType(),
+#     default="0.01mm",
+#     help="Max distance between start and end point to consider a path closed "
+#     "(default: 0.01mm)",
+# )
+# @click.option(
+#     "-d",
+#     "--distance",
+#     type=vp.LengthType(),
+#     default="0.4mm",
+#     help="Distance Between lines in the fill"
+#     "(default: 0.4mm)",
+# )
+# @vp.global_processor
 def efill(document: vp.Document, tolerance: float, distance: float):
 
     efill = EulerianFill(distance)
@@ -71,6 +71,9 @@ class Segment:
     def __len__(self):
         # [False, i, p0, p1, high, low, m, b, path]
         return 9
+
+    def __str__(self):
+        return "Segment(%s,%s,%s,type='%s')" % (str(self.a), str(self.b), str(self.index), self.value)
 
     def __getitem__(self, item):
         if item == 0:
@@ -191,8 +194,8 @@ class Graph:
             itr += 1
         for outline in outlines:
             itr = 0
-            current = None
             previous = None
+            first = None
             for i in range(len(outline.links)):
                 s = outline.links[i]
                 if len(s.bisectors) == 0:
@@ -205,11 +208,11 @@ class Graph:
                         segment.index = itr
                         itr += 1
                     else:
-                        current = bi
+                        first = bi
                     previous = bi
                 s.bisectors.clear()
-            if current is not None and previous is not None:
-                segment = graph.link(previous, current)
+            if previous is not None and first is not None:
+                segment = graph.link(previous, first)
                 segment.value = 'EDGE'
                 segment.index = itr
 
@@ -330,7 +333,6 @@ class GraphWalker:
         """
         start = len(self.walk)
         self.walk.append(g)
-        g.visited += 1
         self.add_loop(start, g)
 
         i = start
@@ -340,8 +342,8 @@ class GraphWalker:
             if unused is None:
                 i += 2
                 continue
-            i += self.add_loop(i, node)
-            i += 2
+            self.add_loop(i, node)
+            # i += 2
 
     def add_loop(self, index, node):
         """
@@ -358,13 +360,13 @@ class GraphWalker:
         index += 1
         i = index
         while True:
+            node.visited += 1
             unused = self.find_unused_connection(node)
             if unused is None:
                 break
             segment = node.connections[unused]
             self.walk.insert(i, segment)
             i += 1
-            node.visited += 1
             segment.visited += 1
             node = self.other_node_for_segment(node, segment)
             self.walk.insert(i, node)
@@ -391,14 +393,12 @@ class GraphWalker:
         """
         Adds nodes within the walk to the points given to it.
 
-        If there is an unconnected section, it will simply create a link across where no link exists.
         :param points:
         :return:
         """
         for i in range(0, len(self.walk), 2):
-            if i + 1 != len(self.walk):
-                if self.walk[i+1] is None:
-                    points.append(None)
+            if self.walk[i-1] is None:
+                points.append(None)
             points.append(self.walk[i])
 
     def remove_loop(self, from_pos, to_pos):
@@ -631,7 +631,7 @@ class EulerianFill:
         min_y = float('inf')
         max_y = -float('inf')
         for outline in self.outlines:
-            outline_graph.add_shape(outline, False)
+            outline_graph.add_shape(outline, True)
             o_min_y = min([p[1] for p in outline])
             o_max_y = max([p[1] for p in outline])
             min_y = min(min_y, o_min_y)
