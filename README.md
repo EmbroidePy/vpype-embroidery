@@ -11,7 +11,24 @@ Embroidery vpype plugin. Reads and Writes embroidery files for the vpype pipelin
 
 
 # Installing
-`$ pip install git+https://github.com/EmbroidePy/vpype-embroidery.git#egg=vpype-embroidery`
+`$ pip install vpype-embroidery`
+
+# Examples
+
+## Complex fills
+
+`vpype begin grid -o 25 25 10 10 circle 0 0 100 end efill show`
+
+![epype](https://user-images.githubusercontent.com/3302478/101284648-fe3d0a00-3795-11eb-8a3b-5f340624195d.png)
+
+## Convert SVG -> DST
+
+`vpype read butterfly.svg ewrite butterfly.dst`
+
+## Convert PES -> SVG
+
+`vpype eread duck.pes write duck.svg`
+
 
 # Supported Formats.
 
