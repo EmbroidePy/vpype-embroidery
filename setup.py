@@ -1,28 +1,23 @@
-from setuptools import setup
+import setuptools
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
-with open("README.md") as f:
-    readme = f.read()
-
-with open("LICENSE") as f:
-    license = f.read()
-
-setup(
+setuptools.setup(
     name="vpype-embroidery",
-    version="0.0.1",
-    description="",
-    long_description=readme,
-    long_description_content_type="text/markdown",
+    version="0.0.2",
     author="Tatarize",
+    author_email="tatarize@gmail.com",
+    description="vpype embroidery plugin",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     url="https://github.com/embroidepy/vpype-embroidery/",
-    license=license,
-    packages=["vpype_embroidery"],
+    packages=setuptools.find_packages(),
     classifiers=(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
         "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
+        "Operating System :: OS Independent"
     ),
     install_requires=[
         "click",
@@ -31,9 +26,9 @@ setup(
         "pyembroidery",
     ],
     entry_points="""
-            [vpype.plugins]
-            eread=vpype_embroidery.eread:eread
-            ewrite=vpype_embroidery.ewrite:ewrite
-            efill=vpype_embroidery.efill:efill
-        """,
+        [vpype.plugins]
+        eread=vpype_embroidery.eread:eread
+        ewrite=vpype_embroidery.ewrite:ewrite
+        efill=vpype_embroidery.efill:efill
+    """,
 )
