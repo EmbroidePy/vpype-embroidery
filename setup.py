@@ -25,8 +25,8 @@ setup(
     ],
     entry_points="""
             [vpype.plugins]
-            read_emb=vpype_embroidery.read_emb:read_emb
-            write_emb=vpype_embroidery.write_emb:write_emb
+            eread=vpype_embroidery.eread:eread
+            ewrite=vpype_embroidery.ewrite:ewrite
             efill=vpype_embroidery.efill:efill
         """,
 )

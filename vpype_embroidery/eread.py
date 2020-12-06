@@ -6,7 +6,7 @@ _EMB_SCALE_FACTOR = 2.645833333333333
 @click.command()
 @click.argument('filename', type=click.Path(exists=True))
 @vp.global_processor
-def read_emb(document: vp.Document, filename: str):
+def eread(document: vp.Document, filename: str):
     pattern = EmbPattern(filename)
     for stitches, color in pattern.get_as_stitchblock():
         if len(stitches) == 0:
@@ -20,4 +20,4 @@ def read_emb(document: vp.Document, filename: str):
         document.add(lc)
     return document
 
-read_emb.help_group = "Embroidery"
+eread.help_group = "Embroidery"

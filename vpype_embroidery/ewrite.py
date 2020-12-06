@@ -4,6 +4,7 @@ from pyembroidery import EmbPattern, STITCH, COLOR_BREAK, STITCH_BREAK
 
 _EMB_SCALE_FACTOR = 2.645833333333333
 
+
 @click.command()
 @click.argument('filename', type=click.Path(exists=False))
 @click.option(
@@ -15,7 +16,7 @@ _EMB_SCALE_FACTOR = 2.645833333333333
     help="version of embroidery file to write",
 )
 @vp.global_processor
-def write_emb(document: vp.Document, filename: str, version: str):
+def ewrite(document: vp.Document, filename: str, version: str):
     pattern = EmbPattern()
     for layer in document.layers.values():
         for p in layer:
@@ -30,4 +31,5 @@ def write_emb(document: vp.Document, filename: str, version: str):
         pattern.write(filename)
     return document
 
-write_emb.help_group = "Embroidery"
+
+ewrite.help_group = "Embroidery"

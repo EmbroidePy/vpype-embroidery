@@ -1,4 +1,5 @@
 from math import isnan, isinf
+
 import click
 import numpy as np
 import vpype as vp
@@ -12,7 +13,7 @@ from svgelements import Point
     type=vp.LengthType(),
     default="0.01mm",
     help="Max distance between start and end point to consider a path closed "
-    "(default: 0.01mm)",
+         "(default: 0.01mm)",
 )
 @click.option(
     "-d",
@@ -20,17 +21,21 @@ from svgelements import Point
     type=vp.LengthType(),
     default="0.4mm",
     help="Distance Between lines in the fill"
-    "(default: 0.4mm)",
+         "(default: 0.4mm)",
 )
 @vp.global_processor
 def efill(document: vp.Document, tolerance: float, distance: float):
+    """
+    Implements the Eulerian fill algorithm which fills any closed shapes with as few paths as there are contiguous
+    regions. With scanlines to fill any shapes, even those with holes, with an even-odd fill order and direct pathing.
 
+    """
     efill = EulerianFill(distance)
-    for layer in document.layers.values():
+    for layer in document.layers.values():  # Add all the closed paths to the efill.
         for p in layer:
             if np.abs(p[0] - p[-1]) <= tolerance:
                 efill += vp.as_vector(p)
-    fill = efill.get_fill()
+    fill = efill.get_fill()  # Get the resulting fill.
 
     lc = vp.LineCollection()
     cur_line = []
@@ -51,6 +56,10 @@ efill.help_group = "Embroidery"
 
 
 class GraphNode(Point):
+    """
+    GraphNodes are nodes within the graph that store a list of connections between points.
+    """
+
     def __init__(self, x, y=None):
         Point.__init__(self, x, y)
         self.connections = []
@@ -58,6 +67,12 @@ class GraphNode(Point):
 
 
 class Segment:
+    """
+    Graphing segments are connections between nodes on the graph that store, their start and end nodes, active state
+    for use within the monotonic vector filling. The type of segment it is. The index of the segment around the closed
+    shape. A list of bisectors (to calculate the rung attachments).
+    """
+
     def __init__(self, a, b, index=0):
         self.visited = 0
         self.a = a
@@ -137,21 +152,21 @@ class Segment:
 
 class Graph:
     """
-    If the graph is fully Eulerian then there should be an even number of input nodes.
+    A graph is a set of nodes and their connections. The nodes are points within 2d space and any number of segments
+    can connect any number of points. There is no order established by the graph. And for our uses here all graphs will
+    end up not only being Eulerian but Euloopian. All nodes should have even numbers of connecting segments so that any
+    walk will always return back to the end location.
 
-    These nodes are treated such that even nodes are input and odd nodes are output nodes.
-
-    If partially Eulerian and odd, then the final node is the start or end node.
-
-    If setup as a circuit then each node should link input to output effectively.
-
-    If a graph is outline, it will be in order, from a to b for each edge, and looped.
     """
+
     def __init__(self):
         self.nodes = []
         self.links = []
 
     def add_shape(self, series, close=True):
+        """
+        Adds a closed shape point series to the graph in a single connected vertex path.
+        """
         first_node = None
         last_node = None
         for i in range(len(series)):
@@ -171,6 +186,15 @@ class Graph:
 
     @staticmethod
     def monotone_fill(graph, outlines, min, max, distance):
+        """
+        Find all line segments that intersect with the graph segments in the shape outlines. Add the links from right to
+        left side of the intersected paths. Add the bisectors to the segments that are bisected.
+
+        Sort all the bisectors and create a graph of monotone rungs and the edges that connect those rungs. Use this
+        graph rather than original outline graph used to find the intersections.
+
+        Adds into graph, a graph of all monotone rungs, and the path of edge nodes that connected those intersections.
+        """
         crawler = VectorMontonizer(low_value=min, high_value=max, start=min)
         for outline in outlines:
             crawler.add_segments(outline.links)
@@ -180,7 +204,7 @@ class Graph:
             crawler.sort_actives()
             y = crawler.current
             for i in range(1, len(crawler.actives), 2):
-                left_segment = crawler.actives[i-1]
+                left_segment = crawler.actives[i - 1]
                 right_segment = crawler.actives[i]
                 left_segment_x = crawler.intercept(left_segment, y)
                 right_segment_x = crawler.intercept(right_segment, y)
@@ -217,21 +241,33 @@ class Graph:
                 segment.index = itr
 
     def new_node(self, point):
+        """
+        Create and add a new node to the graph at the given point.
+        """
         g = GraphNode(point)
         self.nodes.append(g)
         return g
 
     def new_edge(self, a, b):
+        """
+        Create an edge connection between a and b.
+        """
         s = Segment(a, b)
         self.links.append(s)
         return s
 
     def detach(self, segment):
+        """
+        Remove the segment and links from the graph.
+        """
         self.links.remove(segment)
         segment.a.connections.remove(segment)
         segment.b.connections.remove(segment)
 
     def link(self, a, b):
+        """
+        Creates a new edge linking the points a and be and adds the newly created link to the graph.
+        """
         segment = self.new_edge(a, b)
         segment.a.connections.append(segment)
         segment.b.connections.append(segment)
@@ -240,6 +276,8 @@ class Graph:
     def double(self):
         """
         Makes any graph Eulerian. Any graph that is doubled is by definition Eulerian.
+
+        This is not used by the algorithm.
         :return:
         """
         for i in range(len(self.links)):
@@ -253,7 +291,10 @@ class Graph:
 
     def double_odd_edge(self):
         """
-        Makes any outline path a Eularian path.
+        Makes any outline path a Eularian path, by doubling every other edge. As each node connects with 1 rung, and
+        two edges this will double 1 of those edges in every instance, giving a total of 4 connections. This is makes
+        the graph Eulerian.
+
         :return:
         """
         for i in range(len(self.links)):
@@ -264,6 +305,13 @@ class Graph:
                 second_copy.index = None
 
     def walk(self, points):
+        """
+        We have a Eulerian graph we must walk through the graph in any direction. This results in a point series that
+        will cross every segment once.
+
+        Some segments are marked scaffolding or classes of edge that are not necessary. These are removed for parsimony.
+
+        """
         if len(self.nodes) == 0:
             return
         walker = GraphWalker(self)
@@ -293,8 +341,9 @@ class GraphWalker:
     """
     Graph Walker takes a graph object and finds walks within it.
 
-    If the graph is discontinuous it will find no segment between these elements and add a blank segment between them.
+    If the graph is discontinuous it will find no segment between these elements and add a None segment between them.
     """
+
     def __init__(self, graph):
         self.graph = graph
         self.walk = list()
@@ -302,6 +351,9 @@ class GraphWalker:
         self.flip_end = None
 
     def other_node_for_segment(self, current_node, next_segment):
+        """
+        Segments have two nodes, this finds the other side of the given segment.
+        """
         if current_node is next_segment.a:
             return next_segment.b
         else:
@@ -314,6 +366,10 @@ class GraphWalker:
             e.visited = 0
 
     def make_walk(self):
+        """
+        Create the walk out of the current graph. Picks any start point and begins. Note if there
+        are odd node elements anywhere
+        """
         itr = 0
         for g in self.graph.nodes:
             if not g.visited:
@@ -347,7 +403,7 @@ class GraphWalker:
 
     def add_loop(self, index, node):
         """
-        Adds a loop from the current graphnode, without revisiting any nodes.
+        Adds a loop from the current graph node, without revisiting any nodes.
         Returns the altered index caused by adding that loop.
 
         Travels along unused connections until no more travel is possible. If properly Eulerian,
@@ -397,7 +453,7 @@ class GraphWalker:
         :return:
         """
         for i in range(0, len(self.walk), 2):
-            if self.walk[i-1] is None:
+            if self.walk[i - 1] is None:
                 points.append(None)
             points.append(self.walk[i])
 
@@ -429,10 +485,10 @@ class GraphWalker:
         :param end:
         :return:
         """
-        for i in range(start, end+2, 2):
+        for i in range(start, end + 2, 2):
             n = self.get_node(i)
             n.visited = None
-        for i in range(0, int((end-start)//2), 2):
+        for i in range(0, int((end - start) // 2), 2):
             left = start + i
             right = end - i
             s = self.get_node(left)
@@ -463,7 +519,7 @@ class GraphWalker:
         while index < ie:
             segment = None
             try:
-                segment = self.walk[index+1]
+                segment = self.walk[index + 1]
             except IndexError:
                 self.remove_biggest_loop_in_range(start, index)
                 return
@@ -483,14 +539,14 @@ class GraphWalker:
             if j_segment is None or j_segment.value == 'RUNG':
                 if new_end == end:
                     break
-                del self.walk[new_end + 1:end+1]
+                del self.walk[new_end + 1:end + 1]
                 end = new_end
                 break
             new_end -= 2
         new_start = start
         limit = end - 2
         while new_start <= limit:
-            j_segment = self.walk[new_start+1]
+            j_segment = self.walk[new_start + 1]
             if j_segment is None or j_segment.value == 'RUNG':
                 if new_start == start:
                     break
@@ -516,6 +572,9 @@ class GraphWalker:
             index -= 2
 
     def two_opt(self):
+        """
+        Unused
+        """
         v = self.get_value()
         while True:
             new_value = self.two_opt_cycle(v)
@@ -523,6 +582,9 @@ class GraphWalker:
                 break
 
     def two_opt_cycle(self, value):
+        """
+        Unused
+        """
         if len(self.walk) == 0:
             return 0
         swap_start = 0
@@ -540,7 +602,7 @@ class GraphWalker:
                     new_value = self.get_value()
                     if new_value > value:
                         value = new_value
-                        self.walk[swap_start+1:swap_end] = self.walk[swap_start+1:swap_end:-1]  # reverse
+                        self.walk[swap_start + 1:swap_end] = self.walk[swap_start + 1:swap_end:-1]  # reverse
                     else:
                         self.flip_start = None
                         self.flip_end = None
@@ -551,6 +613,9 @@ class GraphWalker:
         return value
 
     def get_segment(self, index):
+        """
+        Unused
+        """
         if self.flip_start is not None and \
                 self.flip_end is not None and \
                 self.flip_start <= index <= self.flip_end:
@@ -558,6 +623,9 @@ class GraphWalker:
         return self.walk[index]
 
     def get_node(self, index):
+        """
+        Unused
+        """
         if self.flip_start is not None and \
                 self.flip_end is not None and \
                 self.flip_start <= index <= self.flip_end:
@@ -578,12 +646,12 @@ class GraphWalker:
         start = 0
         end = len(self.walk) - 1
         while start < end:
-            i_segment = self.get_segment(start+1)
+            i_segment = self.get_segment(start + 1)
             if i_segment.value == 'RUNG':
                 break
             start += 2
         while end >= 2:
-            i_segment = self.get_segment(end-1)
+            i_segment = self.get_segment(end - 1)
             if i_segment.value == 'RUNG':
                 break
             end -= 2
@@ -618,6 +686,8 @@ class GraphWalker:
 
 
 class EulerianFill:
+    """Eulerian fill given some outline shapes, creates a fill."""
+
     def __init__(self, distance):
         self.distance = distance
         self.outlines = []
@@ -647,6 +717,13 @@ class EulerianFill:
 
 
 class VectorMontonizer:
+    """
+    Sorts all segments according to their heighest y values. Steps through the values in order
+    each step activates and deactivates the segments that are encountered such that it always has a list
+    of active segments. Sorting the active segments according to their x-intercepts gives a list of all
+    points that a ray would strike passing through that shape. Every other such area is filled. These are
+    given rungs, and connected to intercept points.
+    """
     def __init__(self, low_value=-float('inf'), high_value=float('inf'), start=-float('inf')):
         self.clusters = []
         self.dirty_cluster_sort = True
