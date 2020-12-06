@@ -20,4 +20,4 @@ def read_emb(document: vp.Document, filename: str):
         document.add(lc)
     return document
 
-read_emb.help_group = "Plugins"
+read_emb.help_group = "Embroidery"
