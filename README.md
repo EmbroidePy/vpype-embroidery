@@ -21,6 +21,10 @@ Embroidery vpype plugin. Reads and Writes embroidery files for the vpype pipelin
 
 ![epype](https://user-images.githubusercontent.com/3302478/101284648-fe3d0a00-3795-11eb-8a3b-5f340624195d.png)
 
+Zoomed
+
+![epype-zoom](https://user-images.githubusercontent.com/3302478/101285367-9a1c4500-3799-11eb-9695-f1c51b7ff840.png)
+
 ## Convert SVG -> DST
 
 `vpype read butterfly.svg ewrite butterfly.dst`
