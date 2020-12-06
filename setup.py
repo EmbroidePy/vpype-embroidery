@@ -14,7 +14,7 @@ setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     author="Tatarize",
-    url="https://github.com/abey79/vpype-explorations/",
+    url="https://github.com/embroidepy/vpype-embroidery/",
     license=license,
     packages=["vpype_embroidery"],
     install_requires=[
