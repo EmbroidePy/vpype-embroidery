@@ -5,24 +5,24 @@ import vpype as vp
 from svgelements import Point
 
 
-# @click.command()
-# @click.option(
-#     "-t",
-#     "--tolerance",
-#     type=vp.LengthType(),
-#     default="0.01mm",
-#     help="Max distance between start and end point to consider a path closed "
-#     "(default: 0.01mm)",
-# )
-# @click.option(
-#     "-d",
-#     "--distance",
-#     type=vp.LengthType(),
-#     default="0.4mm",
-#     help="Distance Between lines in the fill"
-#     "(default: 0.4mm)",
-# )
-# @vp.global_processor
+@click.command()
+@click.option(
+    "-t",
+    "--tolerance",
+    type=vp.LengthType(),
+    default="0.01mm",
+    help="Max distance between start and end point to consider a path closed "
+    "(default: 0.01mm)",
+)
+@click.option(
+    "-d",
+    "--distance",
+    type=vp.LengthType(),
+    default="0.4mm",
+    help="Distance Between lines in the fill"
+    "(default: 0.4mm)",
+)
+@vp.global_processor
 def efill(document: vp.Document, tolerance: float, distance: float):
 
     efill = EulerianFill(distance)
