@@ -7,7 +7,7 @@ Embroidery vpype plugin. Reads and Writes embroidery files for the vpype pipelin
 
 * `read-emb` load an embroidery into the pipeline.
 * `write-emb` write geometries to disk.
-* `efill` (unfinished) fill closed shapes in the document with a Eulerian fill.
+* `efill` fill closed shapes in the document with a Eulerian fill.
 
 
 # Installing
