@@ -1,7 +1,9 @@
 import click
 import vpype as vp
+import numpy as np
 from pyembroidery import EmbPattern
 _EMB_SCALE_FACTOR = 2.645833333333333
+
 
 @click.command()
 @click.argument('filename', type=click.Path(exists=True))
@@ -11,13 +13,14 @@ def eread(document: vp.Document, filename: str):
     for stitches, color in pattern.get_as_stitchblock():
         if len(stitches) == 0:
             continue
-        lc = vp.LineCollection([(stitches[i-1][0] + stitches[i-1][1] * 1j,
-                                 stitches[i][0] + stitches[i][1] * 1j)
-                                for i in range(1,len(stitches))])
+        lc = vp.LineCollection()
         lc.scale(1.0/_EMB_SCALE_FACTOR)
-        c = color.color
-        # Color here is simply ignored.
+        stitch_block = np.asarray(stitches, dtype='float')
+        stitch_block = stitch_block[...,0] + 1j * stitch_block[...,1]
+        lc.append(stitch_block)
+        lc.emb_thread = color  # No defined color api.
         document.add(lc)
     return document
+
 
 eread.help_group = "Embroidery"
