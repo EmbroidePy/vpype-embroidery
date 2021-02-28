@@ -1,4 +1,4 @@
-from math import isnan, isinf
+from math import isinf, isnan
 
 import click
 import numpy as np
@@ -13,15 +13,14 @@ from svgelements import Point
     type=vp.LengthType(),
     default="0.01mm",
     help="Max distance between start and end point to consider a path closed "
-         "(default: 0.01mm)",
+    "(default: 0.01mm)",
 )
 @click.option(
     "-d",
     "--distance",
     type=vp.LengthType(),
     default="0.4mm",
-    help="Distance Between lines in the fill"
-         "(default: 0.4mm)",
+    help="Distance Between lines in the fill" "(default: 0.4mm)",
 )
 @vp.global_processor
 def efill(document: vp.Document, tolerance: float, distance: float):
@@ -78,7 +77,7 @@ class Segment:
         self.a = a
         self.b = b
         self.active = False
-        self.value = 'RUNG'
+        self.value = "RUNG"
         self.index = index
         self.bisectors = []
         self.object = None
@@ -88,7 +87,12 @@ class Segment:
         return 9
 
     def __str__(self):
-        return "Segment(%s,%s,%s,type='%s')" % (str(self.a), str(self.b), str(self.index), self.value)
+        return "Segment(%s,%s,%s,type='%s')" % (
+            str(self.a),
+            str(self.b),
+            str(self.index),
+            self.value,
+        )
 
     def __getitem__(self, item):
         if item == 0:
@@ -111,19 +115,27 @@ class Segment:
                 return self.b
         if item == 6:
             if self.b[0] - self.a[0] == 0:
-                return float('inf')
+                return float("inf")
             return (self.b[1] - self.a[1]) / (self.b[0] - self.a[0])
         if item == 7:
             if self.b[0] - self.a[0] == 0:
-                return float('inf')
+                return float("inf")
             im = (self.b[1] - self.a[1]) / (self.b[0] - self.a[0])
             return self.a[1] - (im * self.a[0])
         if item == 8:
             return self.object
 
     def intersect(self, segment):
-        return Segment.line_intersect(self.a[0], self.a[1], self.b[0], self.b[1],
-                                      segment.a[0], segment.a[1], segment.b[0], segment.b[1])
+        return Segment.line_intersect(
+            self.a[0],
+            self.a[1],
+            self.b[0],
+            self.b[1],
+            segment.a[0],
+            segment.a[1],
+            segment.b[0],
+            segment.b[1],
+        )
 
     def sort_bisectors(self):
         def distance(a):
@@ -177,12 +189,12 @@ class Graph:
             if last_node is not None:
                 segment = self.link(last_node, current_node)
                 segment.index = i
-                segment.value = 'EDGE'
+                segment.value = "EDGE"
             last_node = current_node
         if close:
             segment = self.link(last_node, first_node)
             segment.index = len(series)
-            segment.value = 'EDGE'
+            segment.value = "EDGE"
 
     @staticmethod
     def monotone_fill(graph, outlines, min, max, distance):
@@ -211,7 +223,7 @@ class Graph:
                 left_node = graph.new_node((left_segment_x, y))
                 right_node = graph.new_node((right_segment_x, y))
                 row = graph.link(left_node, right_node)
-                row.value = 'RUNG'
+                row.value = "RUNG"
                 row.index = itr
                 left_segment.bisectors.append(left_node)
                 right_segment.bisectors.append(right_node)
@@ -228,7 +240,7 @@ class Graph:
                 for bi in s.bisectors:
                     if previous is not None:
                         segment = graph.link(previous, bi)
-                        segment.value = 'EDGE'
+                        segment.value = "EDGE"
                         segment.index = itr
                         itr += 1
                     else:
@@ -237,7 +249,7 @@ class Graph:
                 s.bisectors.clear()
             if previous is not None and first is not None:
                 segment = graph.link(previous, first)
-                segment.value = 'EDGE'
+                segment.value = "EDGE"
                 segment.index = itr
 
     def new_node(self, point):
@@ -283,10 +295,10 @@ class Graph:
         for i in range(len(self.links)):
             s = self.links[i]
             second_copy = self.link(s.a, s.b)
-            if s.value == 'RUNG':
-                second_copy.value = 'SCAFFOLD_RUNG'
+            if s.value == "RUNG":
+                second_copy.value = "SCAFFOLD_RUNG"
             else:
-                second_copy.value = 'SCAFFOLD'
+                second_copy.value = "SCAFFOLD"
             second_copy.index = None
 
     def double_odd_edge(self):
@@ -299,9 +311,9 @@ class Graph:
         """
         for i in range(len(self.links)):
             segment = self.links[i]
-            if segment.value == 'EDGE' and segment.index & 1:
+            if segment.value == "EDGE" and segment.index & 1:
                 second_copy = self.link(segment.a, segment.b)
-                second_copy.value = 'SCAFFOLD'
+                second_copy.value = "SCAFFOLD"
                 second_copy.index = None
 
     def walk(self, points):
@@ -441,7 +453,7 @@ class GraphWalker:
             if not c.visited:
                 if value is None:
                     value = index
-                if c.value == 'RUNG':
+                if c.value == "RUNG":
                     return index
         return value
 
@@ -523,7 +535,7 @@ class GraphWalker:
             except IndexError:
                 self.remove_biggest_loop_in_range(start, index)
                 return
-            if segment is None or segment.value == 'RUNG':
+            if segment is None or segment.value == "RUNG":
                 # Segment is essential.
                 if start != index:
                     ie -= self.remove_biggest_loop_in_range(start, index)
@@ -536,10 +548,10 @@ class GraphWalker:
         limit = start + 2
         while new_end >= limit:
             j_segment = self.walk[new_end - 1]
-            if j_segment is None or j_segment.value == 'RUNG':
+            if j_segment is None or j_segment.value == "RUNG":
                 if new_end == end:
                     break
-                del self.walk[new_end + 1:end + 1]
+                del self.walk[new_end + 1 : end + 1]
                 end = new_end
                 break
             new_end -= 2
@@ -547,7 +559,7 @@ class GraphWalker:
         limit = end - 2
         while new_start <= limit:
             j_segment = self.walk[new_start + 1]
-            if j_segment is None or j_segment.value == 'RUNG':
+            if j_segment is None or j_segment.value == "RUNG":
                 if new_start == start:
                     break
                 del self.walk[start:new_start]
@@ -602,7 +614,9 @@ class GraphWalker:
                     new_value = self.get_value()
                     if new_value > value:
                         value = new_value
-                        self.walk[swap_start + 1:swap_end] = self.walk[swap_start + 1:swap_end:-1]  # reverse
+                        self.walk[swap_start + 1 : swap_end] = self.walk[
+                            swap_start + 1 : swap_end : -1
+                        ]  # reverse
                     else:
                         self.flip_start = None
                         self.flip_end = None
@@ -616,9 +630,11 @@ class GraphWalker:
         """
         Unused
         """
-        if self.flip_start is not None and \
-                self.flip_end is not None and \
-                self.flip_start <= index <= self.flip_end:
+        if (
+            self.flip_start is not None
+            and self.flip_end is not None
+            and self.flip_start <= index <= self.flip_end
+        ):
             return self.walk[self.flip_end - (index - self.flip_start)]
         return self.walk[index]
 
@@ -626,9 +642,11 @@ class GraphWalker:
         """
         Unused
         """
-        if self.flip_start is not None and \
-                self.flip_end is not None and \
-                self.flip_start <= index <= self.flip_end:
+        if (
+            self.flip_start is not None
+            and self.flip_end is not None
+            and self.flip_start <= index <= self.flip_end
+        ):
             return self.walk[self.flip_end - (index - self.flip_start)]
         try:
             return self.walk[index]
@@ -647,12 +665,12 @@ class GraphWalker:
         end = len(self.walk) - 1
         while start < end:
             i_segment = self.get_segment(start + 1)
-            if i_segment.value == 'RUNG':
+            if i_segment.value == "RUNG":
                 break
             start += 2
         while end >= 2:
             i_segment = self.get_segment(end - 1)
-            if i_segment.value == 'RUNG':
+            if i_segment.value == "RUNG":
                 break
             end -= 2
         j = start
@@ -661,7 +679,7 @@ class GraphWalker:
             j += 1
             j_segment = self.get_segment(j)
             j += 1
-            if j_segment.value != 'RUNG':
+            if j_segment.value != "RUNG":
                 # if the node connector is not critical, try to find and skip a loop
                 k = j
                 while k < end:
@@ -669,7 +687,7 @@ class GraphWalker:
                     k += 1
                     k_segment = self.get_segment(k)
                     k += 1
-                    if k_segment.value == 'RUNG':
+                    if k_segment.value == "RUNG":
                         break
                     if k_node == j_node:
                         # Only skippable nodes existed before returned to original node, so skip that loop.
@@ -678,9 +696,9 @@ class GraphWalker:
                         j_node = k_node
                         j_segment = k_segment
                         break
-            if j_segment.value == 'SCAFFOLD':
+            if j_segment.value == "SCAFFOLD":
                 value -= j_segment.a.distance_sq(j_segment.b)
-            elif j_segment.value == 'RUNG':
+            elif j_segment.value == "RUNG":
                 value -= j_segment.a.distance_sq(j_segment.b)
         return value
 
@@ -697,8 +715,8 @@ class EulerianFill:
         return self
 
     def get_fill(self):
-        min_y = float('inf')
-        max_y = -float('inf')
+        min_y = float("inf")
+        max_y = -float("inf")
         outline_graphs = list()
         for outline in self.outlines:
             outline_graph = Graph()
@@ -724,7 +742,8 @@ class VectorMontonizer:
     points that a ray would strike passing through that shape. Every other such area is filled. These are
     given rungs, and connected to intercept points.
     """
-    def __init__(self, low_value=-float('inf'), high_value=float('inf'), start=-float('inf')):
+
+    def __init__(self, low_value=-float("inf"), high_value=float("inf"), start=-float("inf")):
         self.clusters = []
         self.dirty_cluster_sort = True
 
@@ -737,8 +756,8 @@ class VectorMontonizer:
         self.valid_low_value = low_value
         self.valid_high_value = high_value
         self.cluster_range_index = 0
-        self.cluster_low_value = float('inf')
-        self.cluster_high_value = -float('inf')
+        self.cluster_low_value = float("inf")
+        self.cluster_high_value = -float("inf")
 
     def add_segments(self, links):
         self.dirty_cluster_position = True
@@ -764,7 +783,7 @@ class VectorMontonizer:
             try:
                 m = (high.y - low.y) / (high.x - low.x)
             except ZeroDivisionError:
-                m = float('inf')
+                m = float("inf")
 
             b = low.y - (m * low.x)
             if self.valid_low_value > high.y:
@@ -806,7 +825,7 @@ class VectorMontonizer:
             y = self.current
         m = e[6]
         b = e[7]
-        if m == float('nan') or m == float('inf'):
+        if m == float("nan") or m == float("inf"):
             low = e[5]
             return low.x
         return (y - b) / m
@@ -818,14 +837,16 @@ class VectorMontonizer:
         self.sort_clusters()
 
         self.cluster_range_index = -1
-        self.cluster_high_value = -float('inf')
+        self.cluster_high_value = -float("inf")
         self.increment_cluster()
 
         while self.is_higher_than_cluster_range(self.current):
             self.increment_cluster()
 
     def in_cluster_range(self, v):
-        return not self.is_lower_than_cluster_range(v) and not self.is_higher_than_cluster_range(v)
+        return not self.is_lower_than_cluster_range(
+            v
+        ) and not self.is_higher_than_cluster_range(v)
 
     def is_lower_than_cluster_range(self, v):
         return v < self.cluster_low_value
@@ -839,7 +860,7 @@ class VectorMontonizer:
         if self.cluster_range_index < len(self.clusters):
             self.cluster_high_value = self.clusters[self.cluster_range_index][0]
         else:
-            self.cluster_high_value = float('inf')
+            self.cluster_high_value = float("inf")
         if self.cluster_range_index > 0:
             return self.clusters[self.cluster_range_index - 1][1]
         else:
@@ -851,7 +872,7 @@ class VectorMontonizer:
         if self.cluster_range_index > 0:
             self.cluster_low_value = self.clusters[self.cluster_range_index - 1][0]
         else:
-            self.cluster_low_value = -float('inf')
+            self.cluster_low_value = -float("inf")
         return self.clusters[self.cluster_range_index][1]
 
     def is_point_inside(self, x, y):

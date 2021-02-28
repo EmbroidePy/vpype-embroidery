@@ -1,12 +1,12 @@
 import click
 import vpype as vp
-from pyembroidery import EmbPattern, STITCH, COLOR_BREAK, SEQUENCE_BREAK
+from pyembroidery import COLOR_BREAK, SEQUENCE_BREAK, STITCH, EmbPattern
 
 _EMB_SCALE_FACTOR = 2.645833333333333
 
 
 @click.command()
-@click.argument('filename', type=click.Path(exists=False))
+@click.argument("filename", type=click.Path(exists=False))
 @click.option(
     "-v",
     "--version",
