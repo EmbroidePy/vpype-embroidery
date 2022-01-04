@@ -29,25 +29,25 @@ def efill(document: vp.Document, tolerance: float, distance: float):
     regions. With scanlines to fill any shapes, even those with holes, with an even-odd fill order and direct pathing.
 
     """
-    efill = EulerianFill(distance)
-    for layer in document.layers.values():  # Add all the closed paths to the efill.
+    for layer in list(document.layers.values()):  # Add all the closed paths to the efill.
+        efill = EulerianFill(distance)
         for p in layer:
             if np.abs(p[0] - p[-1]) <= tolerance:
                 efill += vp.as_vector(p)
-    fill = efill.get_fill()  # Get the resulting fill.
+        fill = efill.get_fill()  # Get the resulting fill.
 
-    lc = vp.LineCollection()
-    cur_line = []
-    for pt in fill:
-        if pt is None:
-            if cur_line:
-                lc.append(cur_line)
-            cur_line = []
-        else:
-            cur_line.append(complex(pt[0], pt[1]))
-    if cur_line:
-        lc.append(cur_line)
-    document.add(lc)
+        lc = vp.LineCollection()
+        cur_line = []
+        for pt in fill:
+            if pt is None:
+                if cur_line:
+                    lc.append(cur_line)
+                cur_line = []
+            else:
+                cur_line.append(complex(pt[0], pt[1]))
+        if cur_line:
+            lc.append(cur_line)
+        document.add(lc)
     return document
 
 
