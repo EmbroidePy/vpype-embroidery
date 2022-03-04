@@ -1,21 +1,22 @@
 import click
 import vpype as vp
+import vpype_cli
 from pyembroidery import COLOR_BREAK, SEQUENCE_BREAK, STITCH, EmbPattern
 
 _EMB_SCALE_FACTOR = 2.645833333333333
 
 
 @click.command()
-@click.argument("filename", type=click.Path(exists=False))
+@click.argument("filename", type=vpype_cli.PathType(exists=False))
 @click.option(
     "-v",
     "--version",
     nargs=1,
     default=None,
-    type=str,
+    type=vpype_cli.TextType(),
     help="version of embroidery file to write",
 )
-@vp.global_processor
+@vpype_cli.global_processor
 def ewrite(document: vp.Document, filename: str, version: str):
     pattern = EmbPattern()
     for layer in document.layers.values():

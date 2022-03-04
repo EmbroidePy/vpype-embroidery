@@ -3,6 +3,7 @@ from math import isinf, isnan
 import click
 import numpy as np
 import vpype as vp
+import vpype_cli
 from svgelements import Point
 
 
@@ -10,7 +11,7 @@ from svgelements import Point
 @click.option(
     "-t",
     "--tolerance",
-    type=vp.LengthType(),
+    type=vpype_cli.LengthType(),
     default="0.01mm",
     help="Max distance between start and end point to consider a path closed "
     "(default: 0.01mm)",
@@ -18,11 +19,11 @@ from svgelements import Point
 @click.option(
     "-d",
     "--distance",
-    type=vp.LengthType(),
+    type=vpype_cli.LengthType(),
     default="0.4mm",
     help="Distance Between lines in the fill" "(default: 0.4mm)",
 )
-@vp.global_processor
+@vpype_cli.global_processor
 def efill(document: vp.Document, tolerance: float, distance: float):
     """
     Implements the Eulerian fill algorithm which fills any closed shapes with as few paths as there are contiguous
