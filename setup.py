@@ -6,7 +6,7 @@ with open("README.md") as f:
 
 setup(
     name="vpype-embroidery",
-    version="0.1.1",
+    version="0.2.0",
     description="vpype embroidery plugin",
     long_description=readme,
     long_description_content_type="text/markdown",
