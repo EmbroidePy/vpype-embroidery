@@ -11,7 +11,18 @@ Embroidery vpype plugin. Reads and Writes embroidery files for the vpype pipelin
 
 
 # Installing
-`$ pip install vpype-embroidery`
+
+pipx-based *vpype* install:
+
+```
+$ pipx inject vpype vpype-embroidery
+```
+
+Global or venv-based *vpype* install:
+
+```
+$ pip install vpype-embroidery
+```
 
 # Examples
 
