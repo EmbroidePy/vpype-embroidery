@@ -6,7 +6,9 @@ import vpype as vp
 import vpype_cli
 from pyembroidery import EmbPattern
 
-_EMB_SCALE_FACTOR = 2.645833333333333
+_EMB_IN_MM = 0.1
+_PX_IN_MM = 0.2645833333333333  # 1/96 inch
+_EMB_PER_PX = _EMB_IN_MM / _PX_IN_MM
 
 
 @click.command()
@@ -22,11 +24,11 @@ def eread(document: vp.Document, filename: str):
         if len(stitches) == 0:
             continue
         lc = vp.LineCollection()
-        lc.scale(1.0 / _EMB_SCALE_FACTOR)
         stitch_block = np.asarray(stitches, dtype="float")
         stitch_block = stitch_block[..., 0] + 1j * stitch_block[..., 1]
         lc.append(stitch_block)
         lc.set_property(vp.METADATA_FIELD_COLOR, vp.Color(color.hex_color()))
+        lc.scale(_EMB_PER_PX)
         document.add(lc, with_metadata=True)
     return document
 
