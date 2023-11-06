@@ -28,7 +28,7 @@ setup(
         "click",
         "vpype>=1.9,<2.0",
         "numpy",
-        "pyembroidery",
+        "pyembroidery>=1.5.0",
     ],
     entry_points="""
             [vpype.plugins]

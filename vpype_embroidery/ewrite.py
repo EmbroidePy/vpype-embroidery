@@ -46,10 +46,13 @@ def ewrite(document: vp.Document, filename: str, version: str, lock: bool, cente
         cx = round((extends[2] + extends[0]) / 2.0)
         cy = round((extends[3] + extends[1]) / 2.0)
         pattern.translate(-cx, -cy)
-    if version is not None:
-        pattern.write(filename, version=version)
-    else:
-        pattern.write(filename)
+    try:
+        if version is not None:
+            pattern.write(filename, version=version)
+        else:
+            pattern.write(filename)
+    except IOError as e:
+        print(e)
     return document
 
 
