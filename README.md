@@ -61,6 +61,7 @@ https://github.com/EmbroidePy/pyembroidery
 * .u01
 * .pec
 * .xxx
+* .tbf
 * .gcode
 
 ### Read

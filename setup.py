@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
 with open("README.md") as f:
@@ -6,7 +6,7 @@ with open("README.md") as f:
 
 setup(
     name="vpype-embroidery",
-    version="0.3.0",
+    version="0.3.2",
     description="vpype embroidery plugin",
     long_description=readme,
     long_description_content_type="text/markdown",
@@ -15,8 +15,12 @@ setup(
     url="https://github.com/embroidepy/vpype-embroidery/",
     packages=["vpype_embroidery"],
     classifiers=[
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent"
     ],
@@ -24,7 +28,7 @@ setup(
         "click",
         "vpype>=1.9,<2.0",
         "numpy",
-        "pyembroidery",
+        "pyembroidery>=1.5.0",
     ],
     entry_points="""
             [vpype.plugins]
